@@ -25,6 +25,8 @@ importFrom("pcaPP",
            "cor.fk")
 importFrom("ADGofTest",
            "ad.test")
+importFrom("mnormt",
+            "pd.solve")
 
 ### Exports ####################################################################
 
@@ -32,7 +34,7 @@ export("dnvmix", "pnvmix", "rnvmix", "pgnvmix", "rgnvmix", "dgnvmix",
        "fitnvmix", "qnvmix", "qqplot_maha",
        "dStudent", "dgStudent", "pStudent", "rStudent", "fitStudent", "pgStudent", "rgStudent", 
        "pgStudentcopula", "rgStudentcopula", "dgStudentcopula",
-       "fitgStudentcopula", 
+       "fitgStudentcopula", "fitStudentcopula",
        "dNorm", "pNorm", "rNorm", "fitNorm", "rNorm_sumconstr",
        "get_set_param",
        "dnvmixcopula", "pnvmixcopula", "rnvmixcopula",

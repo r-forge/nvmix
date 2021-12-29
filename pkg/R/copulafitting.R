@@ -140,6 +140,7 @@ fitscaleskewtEM <- function(u, pseudoskewt = NULL, nu, gamma, P, P_inv = NULL,
                             report.ll = FALSE, P_maxiter = 50, P_tol, ...){
    if(!is.matrix(u)) u <- cbind(u)
    d <- ncol(u)
+   n <- nrow(u)
    if(is.null(P_inv)){
       P_inv <- pd.solve(P, log.det = TRUE)
       ldet <- attr(P_inv, "log.det")
@@ -155,7 +156,7 @@ fitscaleskewtEM <- function(u, pseudoskewt = NULL, nu, gamma, P, P_inv = NULL,
    pseudoskewt_mean_colvec <- matrix(colMeans(pseudoskewt), ncol = 1)
    ## Compute starting ll
    ll <- if(!report.ll) NA else
-      sum(dstudentcopula(u, scale = P, df = nu, log = TRUE))
+      sum(dStudentcopula(u, scale = P, df = nu, log = TRUE))
    ## Update 'scale'
    P_converged <- FALSE
    P_iter <- 1

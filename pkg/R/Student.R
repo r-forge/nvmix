@@ -574,7 +574,7 @@ fitStudentcopula <- function(u, fit.method = c("EM-MLE", "Full-MLE", "Moment-MLE
       nu_current <- if(!is.null(df.init)) df.init else 5 
       P_current <- sin(pcaPP::cor.fk(u) * pi/2)
       P_current <- as.matrix(Matrix::nearPD(P_current, corr = TRUE)$mat)
-      if(method == "EM-MLE"){
+      if(fit.method == "EM-MLE"){
          ECME.tol = list(ll = 1e-5, par = 1e-4,
                          P = 1e-4)
          ## Specify target-function passed to optim():
@@ -606,18 +606,21 @@ fitStudentcopula <- function(u, fit.method = c("EM-MLE", "Full-MLE", "Moment-MLE
          list(nu = nu_next, scale = P_next, ll = ll_next)
       } else { # full MLE
          ## Set up log-likelihood as a function of *internal* parameters 
-         negloglik <- function(intpars){
-            orgpars <- int_to_org_pars_t(intpars) # 3-list; ignore 'gamma'
+         negloglik_ <- function(intpars){
+            orgpars <- int_to_org_pars_t(intpars) 
             scale <- rhoToOmega(orgpars$rho)
             df <- orgpars$nu
             if(df < df.bounds[1] | df > df.bounds[2]) return(Inf)
-            -sum(dStudentcopula(u, df = orgpars$nu, scale = scale, log = TRUE))
+            -sum(dStudentcopula(u, df = df, scale = scale, log = TRUE))
          }
          ## Compute *internal* starting values
          initial.int.pars <- org_to_int_pars_t(rho = P_current[lower.tri(P_current)], 
                                       nu = nu_current)
+         length.theta <- length(initial.int.pars) - 1 # last element is 'nu'
          ## Call the optimizer 
-         opt.obj <- optim(initial.int.pars, negloglik)
+         opt.obj <- optim(initial.int.pars, negloglik_, method = "L-BFGS-B",
+                          lower = c(rep(0, length.theta), df.bounds[1]),
+                          upper = c(rep(2*pi, length.theta), df.bounds[2]))
          newpars <- int_to_org_pars_t(opt.obj$par) 
          list(nu = newpars$nu, scale = rhoToOmega(newpars$rho), 
               ll = opt.obj$value)
@@ -698,34 +701,34 @@ print.fitgStudentcopula <- function(x, ...,
 summary.fitgStudentcopula <- function(object, ...,
                                       digits = max(3, getOption("digits") - 3)){
    ## Check if grouped or not
-   numgroups <- length(unique(x$groupings))
+   numgroups <- length(unique(object$groupings))
    is.grouped <- (numgroups > 1) # logical 
    ## Print function call to fitnvmix()
-   cat("Call: ", deparse(x$call), "\n", sep = "")
+   cat("Call: ", deparse(object$call), "\n", sep = "")
    ## Print information about input data
    cat(sprintf(
-      "Input data: %d %d-dimensional observations.\n", x$n, x$d))
+      "Input data: %d %d-dimensional observations.\n", object$n, object$d))
    ## Print information about the distribution (and wether 'loc'/'scale' provided)
-   scale.string <- if(x$do.scale) "unknown scale matrix and" else "known scale matrix and"
+   scale.string <- if(object$do.scale) "unknown scale matrix and" else "known scale matrix and"
    if(is.grouped){
       cat("Fitting a grouped t copula with", scale.string, numgroups, "group(s) and group sizes given by \n")
-      print(table(x$groupings, dnn = "Group"))
+      print(table(object$groupings, dnn = "Group"))
       cat(sprintf("Approximated log-likelihood at reported parameter estimates: %f \n",
-                  round(x$max.ll, digits)), sep = "")
+                  round(object$max.ll, digits)), sep = "")
    } else {
       cat("Fitting a t copula with", scale.string, "\n")
       cat(sprintf("Log-likelihood at reported parameter estimates: %f \n",
-                  round(x$max.ll, digits)), sep = "")
+                  round(object$max.ll, digits)), sep = "")
    }
-   cat("Fitting method used: ", x$fit.method, "\n")
+   cat("Fitting method used: ", object$fit.method, "\n")
    ## Print dof parameters
    tmpstring <- if(is.grouped) "for each group" else ""
    cat("Estimated degrees-of-freedom", tmpstring, "\n")
-   print(x$df)
+   print(object$df)
    ## Print 'scale'
-   estim.prov.scale <- if(x$do.scale) "Estimated" else "Provided"
+   estim.prov.scale <- if(object$do.scale) "Estimated" else "Provided"
    cat(estim.prov.scale, "'scale' matrix: ", '\n')
-   print(x$scale, digits = digits)
+   print(object$scale, digits = digits)
    cat("\n")
    ## -- up to here same as print.fitgStudentcopula() --
    if(!is.null(object$opt.conv)){
