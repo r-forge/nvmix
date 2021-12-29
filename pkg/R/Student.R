@@ -556,7 +556,7 @@ fitgStudentcopula <- function(x, u, df.init = NULL, scale = NULL,
 #' @param verbose logical if warnings shall be returned
 #' @return S3 object of class 'fitgStudentcopula'
 #' @author Erik Hintz
-fitStudentcopula <- function(u, fit.method = c("EM-MLE", "Full-MLE", "Moment-MLE"),
+fitStudentcopula <- function(u, fit.method = c("Moment-MLE", "EM-MLE", "Full-MLE"),
                              df.init = NULL, df.bounds = c(0.1, 30),
                              control = list(), verbose = TRUE){
    fit.method <- match.arg(fit.method) 
@@ -609,21 +609,25 @@ fitStudentcopula <- function(u, fit.method = c("EM-MLE", "Full-MLE", "Moment-MLE
          negloglik_ <- function(intpars){
             orgpars <- int_to_org_pars_t(intpars) 
             scale <- rhoToOmega(orgpars$rho)
-            df <- orgpars$nu
-            if(df < df.bounds[1] | df > df.bounds[2]) return(Inf)
-            -sum(dStudentcopula(u, df = df, scale = scale, log = TRUE))
+            factor <- tryCatch(t(chol(scale)), error = function(e) NULL)
+            if(is.null(factor)) return(1e8) # scale does not have full rank
+            -sum(dStudentcopula(u, df = orgpars$nu, factor = factor, log = TRUE))
          }
          ## Compute *internal* starting values
          initial.int.pars <- org_to_int_pars_t(rho = P_current[lower.tri(P_current)], 
-                                      nu = nu_current)
-         length.theta <- length(initial.int.pars) - 1 # last element is 'nu'
+                                                nu = nu_current)
+         lth <- length(initial.int.pars) - 1 # last element is 'nu'
+         ## Get bounds
+         upbounds <- matrix(pi, ncol = d-1, nrow = d-1)
+         diag(upbounds) <- 2 * pi
+         upbounds <- as.vector(upbounds[lower.tri(upbounds, diag = TRUE)])
          ## Call the optimizer 
          opt.obj <- optim(initial.int.pars, negloglik_, method = "L-BFGS-B",
-                          lower = c(rep(0, length.theta), df.bounds[1]),
-                          upper = c(rep(2*pi, length.theta), df.bounds[2]))
+                          lower = c(rep(0, lth), df.bounds[1]), 
+                          upper = c(upbounds, df.bounds[2]))
          newpars <- int_to_org_pars_t(opt.obj$par) 
          list(nu = newpars$nu, scale = rhoToOmega(newpars$rho), 
-              ll = opt.obj$value)
+              ll = -opt.obj$value, opt.obj = opt.obj)
       }
    }
    class_fitgStudentcopula(df = out$nu, scale = out$scale, max.ll = out$ll,
@@ -631,8 +635,6 @@ fitStudentcopula <- function(u, fit.method = c("EM-MLE", "Full-MLE", "Moment-MLE
                            groupings = rep(1, d), call = call, opt.conv = NULL, 
                            fit.method = fit.method)
 }
-
-
 
 
 

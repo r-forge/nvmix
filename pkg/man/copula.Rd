@@ -41,7 +41,7 @@ rgStudentcopula(n, groupings = 1:d, df, scale = diag(2), factor = NULL,
 fitgStudentcopula(x, u, df.init = NULL, scale = NULL, groupings = rep(1, d), 
                   df.bounds = c(0.5, 30), fit.method = c("joint-MLE", 
                   "groupewise-MLE"), control = list(), verbose = TRUE)
-fitStudentcopula(u, fit.method = c("EM-MLE", "Full-MLE", "Moment-MLE"),
+fitStudentcopula(u, fit.method = c("Moment-MLE", "EM-MLE", "Full-MLE"),
                  df.init = NULL, df.bounds = c(0.1, 30), control = list(), 
                  verbose = TRUE)
                 
