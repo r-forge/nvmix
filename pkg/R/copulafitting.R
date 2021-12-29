@@ -33,7 +33,7 @@ int_to_org_pars_t <- function(par){
          k <- (j - 1)*(dim - j/2) + 1
          thj <- theta[k:(k+dim-j-1)]
          cumsin <- cumsin[-1]
-         LTR[((j+1):dim),j] <- cumsin*cos(thj)
+         LTR[((j+1):dim),j] <- cumsin * cos(thj)
          cumsin <- cumsin * sin(thj) 
       } 
    }
@@ -191,7 +191,7 @@ fitscaleskewtEM <- function(u, pseudoskewt = NULL, nu, gamma, P, P_inv = NULL,
                                    cov = P_inv, inverted = TRUE)
       weights <- (nu + d) / (nu + maha2_current)
       P_next <- as.matrix(nearPD(
-         crossprod(sqrt(weights)*pseudoskewt)/n, corr = TRUE)$mat) 
+         crossprod(sqrt(weights)*pseudoskewt)/n)$mat) 
       P_next_inv <- pd.solve(P_next, log.det = TRUE)
       ldet <- attr(P_next_inv, "log.det")
       reldiff_P <- max(abs(P_next - P)/P)
@@ -200,6 +200,7 @@ fitscaleskewtEM <- function(u, pseudoskewt = NULL, nu, gamma, P, P_inv = NULL,
       P <- P_next
       P_inv <- P_next_inv
    }
+   P_next <- cov2cor(P_next)
    P_next_inv <- pd.solve(P_next, log.det = TRUE)
    ldet_next <- attr(P_next_inv, "log.det")
    ## Compute log-density
