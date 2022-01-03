@@ -559,6 +559,7 @@ fitgStudentcopula <- function(x, u, df.init = NULL, scale = NULL,
 fitStudentcopula <- function(u, fit.method = c("Moment-MLE", "EM-MLE", "Full-MLE"),
                              df.init = NULL, df.bounds = c(0.1, 30),
                              control = list(), verbose = TRUE){
+   call <- match.call() # for return
    fit.method <- match.arg(fit.method) 
    ## Checks
    if(!is.matrix(u)) u <- cbind(u)
@@ -568,10 +569,10 @@ fitStudentcopula <- function(u, fit.method = c("Moment-MLE", "EM-MLE", "Full-MLE
       tmp <- fitgStudentcopula(u = u, df.init = df.init, df.bounds = df.bounds,
                         groupings = rep(1, d), control = control,
                         verbose = verbose)
-      list(nu = tmp$df, scale = tmp$scale, ll = tmp$max.ll) # deal with class below
+      list(df = tmp$df, scale = tmp$scale, ll = tmp$max.ll) # deal with class below
    } else {
       ## Initial parameters
-      nu_current <- if(!is.null(df.init)) df.init else 5 
+      df_current <- if(!is.null(df.init)) df.init else 5 
       P_current <- sin(pcaPP::cor.fk(u) * pi/2)
       P_current <- as.matrix(Matrix::nearPD(P_current, corr = TRUE)$mat)
       if(fit.method == "EM-MLE"){
@@ -581,12 +582,12 @@ fitStudentcopula <- function(u, fit.method = c("Moment-MLE", "EM-MLE", "Full-MLE
          ## @param 'nu': dof parameter
          ## @return neg.max.ll numeric (>0) which is 
          ## - argmax_{\nu>0} log l(nu, \hat{P}(nu))
-         ## where \hat{P}(nu) is the MLE for P for fixed 'nu' and l is the
+         ## where \hat{P}(nu) is the MLE for P for fixed 'df' and l is the
          ## copula likelihood function 
          P_myfun <- P_current 
          calls <- 0
-         negloglik <- function(nu){
-            temp <- fitscaleskewtEM(u, pseudoskewt = NULL, nu = nu, 
+         negloglik <- function(df){
+            temp <- fitscaleskewtEM(u, pseudoskewt = NULL, df = df, 
                                     gamma = rep(0, d), 
                                     P = P_myfun, P_inv = NULL, ldet = NULL, 
                                     report.ll = TRUE, 
@@ -596,14 +597,14 @@ fitStudentcopula <- function(u, fit.method = c("Moment-MLE", "EM-MLE", "Full-MLE
             -temp$ll[2]
          }
          opt.obj <- optimize(negloglik, lower = df.bounds[1], upper = df.bounds[2])
-         nu_next <- opt.obj$minimum
+         df_next <- opt.obj$minimum
          ll_next <- -opt.obj$objective 
-         P_next <- fitscaleskewtEM(u, pseudoskewt = NULL, nu = nu_next, 
+         P_next <- fitscaleskewtEM(u, pseudoskewt = NULL, df = df_next, 
                                    gamma = rep(0, d), 
                                    P = P_current, P_inv = NULL, ldet = NULL, 
                                    report.ll = TRUE, 
                                    P_maxiter = 100, P_tol = ECME.tol$P)$P_next
-         list(nu = nu_next, scale = P_next, ll = ll_next)
+         list(df = df_next, scale = P_next, ll = ll_next)
       } else { # full MLE
          ## Set up log-likelihood as a function of *internal* parameters 
          negloglik_ <- function(intpars){
@@ -611,12 +612,12 @@ fitStudentcopula <- function(u, fit.method = c("Moment-MLE", "EM-MLE", "Full-MLE
             scale <- rhoToOmega(orgpars$rho)
             factor <- tryCatch(t(chol(scale)), error = function(e) NULL)
             if(is.null(factor)) return(1e8) # scale does not have full rank
-            -sum(dStudentcopula(u, df = orgpars$nu, factor = factor, log = TRUE))
+            -sum(dStudentcopula(u, df = orgpars$df, factor = factor, log = TRUE))
          }
          ## Compute *internal* starting values
          initial.int.pars <- org_to_int_pars_t(rho = P_current[lower.tri(P_current)], 
-                                                nu = nu_current)
-         lth <- length(initial.int.pars) - 1 # last element is 'nu'
+                                                df = df_current)
+         lth <- length(initial.int.pars) - 1 # last element is 'df'
          ## Get bounds
          upbounds <- matrix(pi, ncol = d-1, nrow = d-1)
          diag(upbounds) <- 2 * pi
@@ -626,11 +627,11 @@ fitStudentcopula <- function(u, fit.method = c("Moment-MLE", "EM-MLE", "Full-MLE
                           lower = c(rep(0, lth), df.bounds[1]), 
                           upper = c(upbounds, df.bounds[2]))
          newpars <- int_to_org_pars_t(opt.obj$par) 
-         list(nu = newpars$nu, scale = rhoToOmega(newpars$rho), 
+         list(df = newpars$df, scale = rhoToOmega(newpars$rho), 
               ll = -opt.obj$value, opt.obj = opt.obj)
       }
    }
-   class_fitgStudentcopula(df = out$nu, scale = out$scale, max.ll = out$ll,
+   class_fitgStudentcopula(df = out$df, scale = out$scale, max.ll = out$ll,
                            do.scale = TRUE, df.init = df.init, n = n, d = d, 
                            groupings = rep(1, d), call = call, opt.conv = NULL, 
                            fit.method = fit.method)
@@ -682,12 +683,12 @@ print.fitgStudentcopula <- function(x, ...,
       print(table(x$groupings, dnn = "Group"))
       cat(sprintf("Approximated log-likelihood at reported parameter estimates: %f \n",
                   round(x$max.ll, digits)), sep = "")
+      cat("Fitting method used: ", x$fit.method, "\n")
    } else {
-      cat("Fitting a t copula with", scale.string, "\n")
+      cat("Fitting a t copula with", scale.string, "and method ", x$fit.method, "\n")
       cat(sprintf("Log-likelihood at reported parameter estimates: %f \n",
                   round(x$max.ll, digits)), sep = "")
    }
-   cat("Fitting method used: ", x$fit.method, "\n")
    ## Print dof parameters
    tmpstring <- if(is.grouped) "for each group" else ""
    cat("Estimated degrees-of-freedom", tmpstring, "\n")
