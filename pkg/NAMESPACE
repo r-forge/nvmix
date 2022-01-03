@@ -8,7 +8,7 @@ importFrom("stats",
            "sd", qchisq, "qnorm", "dnorm", "qgamma", "uniroot", "cov2cor",
            "cor", "cov", "cov.wt", "optim", "optimize", "var", "pchisq",
            "dgamma", "mahalanobis", "pf", "ppoints", "qf", "df", "qqnorm",
-           "qqline", "ks.test", "quantile")
+           "qqline", "ks.test", "quantile", "splinefun")
 importFrom("methods",
            "existsFunction", "hasArg")
 importFrom("qrng",
@@ -27,6 +27,8 @@ importFrom("ADGofTest",
            "ad.test")
 importFrom("mnormt",
             "pd.solve")
+importFrom("pracma", 
+	   "pchip")
 
 ### Exports ####################################################################
 
