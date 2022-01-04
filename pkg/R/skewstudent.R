@@ -309,14 +309,28 @@ pskewt1d_yos <- function(q, gamma, df, loc = 0, sig = 1, subdivisions = 100,
 #' @author Erik Hintz using code from Yoshiba (2018)
 #' @return (n, d) matrix of samples from t_d(df, loc, scale, gamma)
 rskewt <- function(n, loc = rep(0, d), scale = diag(2), factor = NULL,
-                   gamma = rep(0, d), df = Inf){
+                   gamma = rep(0, d), df = Inf, 
+                   method = c("PRNG", "sobol", "ghalton"), skip = 0){
    ## Dimension
    if(is.null(factor)) factor <- chol(scale) # multiplication from the right below
    d <- nrow(factor)
-   ## Realizations of W~IG(df/2, df/2)
-   W <- if(df == Inf) 1 else 1/rgamma(n, shape = df/2, rate = df/2)
-   ## Realizations of Z ~ N_d(0, I_d)
-   Z <- matrix(rnorm(n * d), ncol = d)
+   inversion <- (method != "PRNG")
+   ## Compute W, Z 
+   if(inversion){
+      U <- switch(method,
+                  "sobol" = {
+                     qrng::sobol(n, d = d + 1, randomize = "digital.shift", 
+                                 skip = skip)
+                  },
+                  "ghalton" = {
+                     qrng::ghalton(n, d = d + 1, method = "generalized")
+                  })
+      W <- if(df == Inf) 1 else 1 / qgamma(1 - U[, 1], shape = df/2, rate = df/2)
+      Z <- qnorm(U[, -1])
+   } else {
+      W <- if(df == Inf) 1 else 1/rgamma(n, shape = df/2, rate = df/2)
+      Z <- matrix(rnorm(n * d), ncol = d)
+   }
    Y <- Z %*% factor # scale-transform 
    ## Return
    sweep((t(matrix(gamma, d, n)) * W + sqrt(W) * Y), 2, loc, "+")
@@ -332,12 +346,15 @@ rskewt <- function(n, loc = rep(0, d), scale = diag(2), factor = NULL,
 #' @author Erik Hintz using code from Yoshiba (2018)
 #' @return (n, d) matrix of samples from C^t_(df, scale, gamma)
 rskewtcopula <- function(n, scale = diag(2), factor = NULL,
-                         gamma = rep(0, d), df, pseudo = TRUE){
+                         gamma = rep(0, d), df = Inf, pseudo = TRUE,
+                         method = c("PRNG", "sobol", "ghalton"), skip = 0){
+   method <- match.arg(method)
    ## Dimension
    if(is.null(factor)) factor <- chol(scale) # multiplication from the right below
    d <- nrow(factor)
    ## Sample from the skew-t distribution
-   X <- rskewt(n, factor = factor, gamma = gamma, df = df)
+   X <- rskewt(n, factor = factor, gamma = gamma, df = df, method = method,
+               skip = skip)
    ## Compute copula observations
    U <- if(pseudo) pobs(X) else {
       sapply(1:d, function(i) pskewt1d_yos(X[, i], gamma = gamma[i], 
