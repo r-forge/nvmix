@@ -8,13 +8,13 @@
 Sampling and density evaluation for the multivariate skew-t distribution and copula. 
 }
 \usage{
-rskewt(n, loc = rep(0, d), scale = diag(2), factor = NULL,
-       gamma = rep(0, d), df = Inf)
+rskewt(n, loc = rep(0, d), scale = diag(2), factor = NULL, gamma = rep(0, d), 
+       df = Inf, method = c("PRNG", "sobol", "ghalton"), skip = 0)
 dskewt(x, loc = rep(0, d), scale = diag(2), gamma = rep(0, d), df, 
        log = FALSE, scale.inv, ldet)
        
-rskewtcopula(n, scale = diag(2), factor = NULL, gamma = rep(0, d), 
-             df, pseudo = TRUE)
+rskewtcopula(n, scale = diag(2), factor = NULL, gamma = rep(0, d), df = Inf, 
+             pseudo = TRUE, method = c("PRNG", "sobol", "ghalton"), skip = 0)
 dskewtcopula(u, scale = diag(2), gamma = rep(0, d), df, log = FALSE, 
              scale.inv, ldet)
 }
@@ -42,7 +42,9 @@ dskewtcopula(u, scale = diag(2), gamma = rep(0, d), df, log = FALSE,
     density is to be computed.}
   \item{pseudo}{\code{\link{logical}}; if \code{TRUE}, copula samples are computed
   via \code{pobs()} from a multivariate skew-t sample. If \code{FALSE}, the univariate skew t distribution functions are internally approximated via 
-  \code{integrate()}; see details below.}  
+  \code{integrate()}; see details below.}
+  \item{method}{see \code{\link{rnvmix}()}.}
+  \item{skip}{see \code{\link{rnvmix}()}.}
 }
 \value{
   \eqn{n}-vector of (log-)density values and \eqn{(n, d)}-matrix of samples, respectively.

@@ -594,7 +594,7 @@ fitStudentcopula <- function(u, fit.method = c("Moment-MLE", "EM-MLE", "Full-MLE
                                     P_maxiter = 100, P_tol = ECME.tol$par)
             ## Return - max ll achieved 
             P_myfun <<- temp$P_next
-            -temp$ll[2]
+            -temp$ll
          }
          opt.obj <- optimize(negloglik, lower = df.bounds[1], upper = df.bounds[2])
          df_next <- opt.obj$minimum
