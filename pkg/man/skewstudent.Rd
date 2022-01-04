@@ -10,7 +10,7 @@ Sampling and density evaluation for the multivariate skew-t distribution and cop
 \usage{
 rskewt(n, loc = rep(0, d), scale = diag(2), factor = NULL,
        gamma = rep(0, d), df = Inf)
-dskewt(x, loc = rep(0, d), scale = diag(2), gamma = rep(0, d), df = Inf, 
+dskewt(x, loc = rep(0, d), scale = diag(2), gamma = rep(0, d), df, 
        log = FALSE, scale.inv, ldet)
        
 rskewtcopula(n, scale = diag(2), factor = NULL, gamma = rep(0, d), 
@@ -86,7 +86,6 @@ versions of \code{nvmix}.
 }
 \seealso{
   \code{\link{rStudent}()}, \code{\link{dStudent}()}, \code{\link{rStudentcopula}()}, \code{\link{dStudentcopula}()}}
-}
 \examples{
 ## Sampling from the skew-t copula
 
