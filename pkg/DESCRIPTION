@@ -1,5 +1,5 @@
 Package: nvmix
-Version: 0.0-8
+Version: 0.1-0
 Encoding: UTF-8
 Title: Multivariate Normal Variance Mixtures
 Description: Functions for working with (grouped) multivariate normal variance mixture
@@ -7,6 +7,7 @@ Description: Functions for working with (grouped) multivariate normal variance m
   random number generation and parameter estimation), including
   Student's t distribution for non-integer degrees-of-freedom as well as the grouped t
   distribution and copula with multiple degrees-of-freedom parameters.
+  See <doi:10.18637/jss.v102.i02> for a high-level description of select functionality.
 Authors@R: c(person(given = "Marius", family = "Hofert", role = c("aut", "cre"),
                     email = "marius.hofert@uwaterloo.ca"),
              person(given = "Erik", family = "Hintz", role = "aut",
