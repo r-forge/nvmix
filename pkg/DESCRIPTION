@@ -1,5 +1,5 @@
 Package: nvmix
-Version: 0.1-1
+Version: 0.1-2
 Encoding: UTF-8
 Title: Multivariate Normal Variance Mixtures
 Description: Functions for working with (grouped) multivariate normal variance mixture
@@ -18,7 +18,9 @@ Author: Marius Hofert [aut, cre], Erik Hintz [aut], Christiane Lemieux [aut]
 Maintainer: Marius Hofert <mhofert@hku.hk>
 Depends: R (>= 3.2.0)
 Imports: stats, methods, qrng, Matrix, copula, pcaPP, ADGofTest, mnormt, pracma
-Suggests: RColorBrewer, lattice, qrmdata, xts, knitr, rmarkdown
+Suggests: RColorBrewer, lattice, qrmdata, xts, knitr, rmarkdown,
+          qrmtools, rugarch, quadprog, mvtnorm, sensitivity,
+	  microbenchmark, QRM, zoo
 Enhances:
 License: GPL (>= 3) | file LICENCE
 NeedsCompilation: yes
